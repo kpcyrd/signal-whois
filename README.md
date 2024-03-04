@@ -7,6 +7,8 @@ signal-whois url 'https://signal.me/#eu/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 signal-whois username signal.03
 ```
 
+This is a research project that demonstrates how these two features work.
+
 ## Compile
 
 ```

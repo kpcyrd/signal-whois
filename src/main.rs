@@ -1,7 +1,7 @@
 use anyhow::{anyhow, bail, Context as _, Result};
 use clap::{ArgAction, Parser};
 use env_logger::Env;
-use log::{debug, info, warn};
+use log::{debug, info, trace, warn};
 use reqwest::{Certificate, Client};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
@@ -83,7 +83,7 @@ fn parse_signal_me_url(url: &str) -> Result<(Vec<u8>, Vec<u8>)> {
         .context("Fragment is supposed to start with #eu/")?;
     let fragment = data_encoding::BASE64_NOPAD.decode(fragment.as_bytes())?;
 
-    debug!("Decoded fragment: {fragment:?}");
+    trace!("Decoded fragment: {fragment:?}");
     if fragment.len() < USERNAME_LINK_ENTROPY_SIZE {
         bail!(
             "Fragment is too short, len={} expected={}",
@@ -141,7 +141,10 @@ async fn fetch_decrypt_username_link(
 ) -> Result<String> {
     let url = username_link_url(server_uuid)?;
     let response = fetch::<UsernameLinkResponse>(client, &url).await?;
-    info!("Received response from server: {response:?}");
+    info!(
+        "Received response from server: {:?}",
+        response.username_link_encrypted_value
+    );
 
     let encrypted_username = data_encoding::BASE64URL_NOPAD
         .decode(response.username_link_encrypted_value.as_bytes())
@@ -178,7 +181,9 @@ async fn main() -> anyhow::Result<()> {
     let log_level = match (args.quiet, args.verbose) {
         (true, _) => "warn",
         (false, 0) => "info",
-        (false, 1) => "debug",
+        (false, 1) => "info,signal_whois=debug",
+        (false, 2) => "debug",
+        (false, 3) => "debug,signal_whois=trace",
         (false, _) => "trace",
     };
     env_logger::init_from_env(Env::default().default_filter_or(log_level));
@@ -195,8 +200,8 @@ async fn main() -> anyhow::Result<()> {
                 url,
             } => {
                 let (entropy, server_uuid) = parse_signal_me_url(url)?;
-                debug!("Found entropy for decryption: {entropy:?}");
-                debug!("Found server uuid to lookup link: {server_uuid:?}");
+                trace!("Found entropy for decryption: {entropy:?}");
+                trace!("Found server uuid to lookup link: {server_uuid:?}");
                 let entropy = entropy[..].try_into().context("entropy has wrong size")?;
                 let server_uuid = server_uuid[..]
                     .try_into()
