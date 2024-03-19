@@ -63,6 +63,13 @@ pub struct UsernameHashResponse {
     pub uuid: String,
 }
 
+// supports both base64 and base64-url
+fn from_web_safe_base64(base64: &str) -> Result<Vec<u8>> {
+    let base64 = base64.replace('_', "/").replace('-', "+");
+    let bytes = data_encoding::BASE64_NOPAD.decode(base64.as_bytes())?;
+    Ok(bytes)
+}
+
 fn parse_signal_me_url(url: &str) -> Result<(Vec<u8>, Vec<u8>)> {
     let url = url
         .parse::<Url>()
@@ -81,7 +88,7 @@ fn parse_signal_me_url(url: &str) -> Result<(Vec<u8>, Vec<u8>)> {
     let fragment = fragment
         .strip_prefix("eu/")
         .context("Fragment is supposed to start with #eu/")?;
-    let fragment = data_encoding::BASE64_NOPAD.decode(fragment.as_bytes())?;
+    let fragment = from_web_safe_base64(fragment)?;
 
     trace!("Decoded fragment: {fragment:?}");
     if fragment.len() < USERNAME_LINK_ENTROPY_SIZE {
