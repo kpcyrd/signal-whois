@@ -7,9 +7,13 @@ use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use std::borrow::Cow;
 use std::path::PathBuf;
+use std::time::Duration;
 use tokio::fs;
 use url::Url;
 use uuid::Uuid;
+
+pub const CONNECT_TIMEOUT: Duration = Duration::from_secs(15);
+pub const READ_TIMEOUT: Duration = Duration::from_secs(30);
 
 // usernames::constants::USERNAME_LINK_ENTROPY_SIZE is not public
 pub const USERNAME_LINK_ENTROPY_SIZE: usize = 32;
@@ -174,7 +178,10 @@ async fn setup_http_client(args: &Args) -> Result<Client> {
     };
     let cert = Certificate::from_pem(&ca)?;
 
-    let mut builder = Client::builder().add_root_certificate(cert);
+    let mut builder = Client::builder()
+        .add_root_certificate(cert)
+        .connect_timeout(CONNECT_TIMEOUT)
+        .read_timeout(READ_TIMEOUT);
     if let Some(agent) = &args.user_agent {
         builder = builder.user_agent(agent);
     }
