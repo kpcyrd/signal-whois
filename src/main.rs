@@ -1,10 +1,10 @@
-use anyhow::{anyhow, bail, Context as _, Result};
+use anyhow::{Context as _, Result, anyhow, bail};
 use clap::{ArgAction, Parser};
 use env_logger::Env;
 use log::{debug, info, trace, warn};
 use reqwest::{Certificate, Client};
-use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use serde::de::DeserializeOwned;
 use std::borrow::Cow;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -268,13 +268,19 @@ mod tests {
     fn test_username_link_api_url() {
         let server_uuid = b"\x5e\xdb\x55\xc1\xd0\x88\x41\x25\x85\x7c\x96\x69\x24\xa0\xc4\xa6";
         let url = username_link_url(server_uuid).unwrap();
-        assert_eq!(url, "https://chat.signal.org/v1/accounts/username_link/5edb55c1-d088-4125-857c-966924a0c4a6");
+        assert_eq!(
+            url,
+            "https://chat.signal.org/v1/accounts/username_link/5edb55c1-d088-4125-857c-966924a0c4a6"
+        );
     }
 
     #[test]
     fn test_username_hash_api_url() {
         let username = "signal.03";
         let url = username_lookup_url(username).unwrap();
-        assert_eq!(url, "https://chat.signal.org/v1/accounts/username_hash/pnHmENLMVzEaBbEiDcBGDOAI9hsuJOi65MxnS6MWYT8");
+        assert_eq!(
+            url,
+            "https://chat.signal.org/v1/accounts/username_hash/pnHmENLMVzEaBbEiDcBGDOAI9hsuJOi65MxnS6MWYT8"
+        );
     }
 }
